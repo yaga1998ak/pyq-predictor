@@ -1,0 +1,41 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Virtualenv
+.venv/
+venv/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Source corpus: copyrighted exam papers, 1.6 GB. Not redistributable.
+data/
+
+# Generated outputs, forecasts and run logs — reproducible from src/
+out/
+*.log
+
+# Editor / OS noise
+.DS_Store
+*.bak.*
+*.swp
+.idea/
+.vscode/
+
+# Personal — YAGA world model, SSC pipeline, n8n automation. Not for publication.
+YAGA.md
+WORLD_MODEL.md
+run_world.sh
+src/yaga*.py
+src/brain*.py
+src/organs.py
+src/world_*.py
+src/n8n_*.py
+src/daily_run.py
+src/adaptive.py
+src/_superseded/
+taxonomy/ssc_cgl*.yaml

@@ -1,0 +1,21 @@
+[
+  {
+    "year": 2023,
+    "exam": "SSC_CGL",
+    "shift": null,
+    "questions": [
+      {
+        "qid": "t1",
+        "year": 2023,
+        "exam": "SSC_CGL",
+        "text": "A shopkeeper marks an article 40% above cost and gives 20% discount. Find profit%.",
+        "section": null,
+        "topic": null,
+        "tagger_confidence": null,
+        "options": [],
+        "answer": null,
+        "source_pdf": null
+      }
+    ]
+  }
+]

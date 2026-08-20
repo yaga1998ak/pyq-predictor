@@ -1,0 +1,66 @@
+# Kerala PSC DEGREE LEVEL MAIN EXAMINATION
+# Applies to: University Assistant Main, Company/Corporation/Board Assistant Main
+#
+# VERIFIED against the official "Detailed Syllabus and Mark Distribution
+# (Degree Level Main Examination)", Cat.No.26/2022 ->
+#   data/official/kerala/degree_main_syllabus_2022_ksfe.pdf
+# Independently cross-checked against the block boundaries in real paper
+# 160/2023 (University Assistant Main, 25/08/2023). All four blocks match.
+#
+# The `marks` values below are the COMMISSION'S OWN published weights. They are
+# not inferred, not modelled, and not derived from any language model. For this
+# exam the topic weighting does not need forecasting -- it is published. Model
+# effort belongs on WHICH questions appear inside each bucket, not on the split.
+#
+# DO NOT POOL: Secretariat / KPSC Assistant Main is a different paper
+# (Paper I + Paper II, no Current Affairs block, English 13 / Malayalam 13).
+verified: true
+source: keralapsc.gov.in Cat.No.26/2022 + paper 160/2023
+exam: KERALA_PSC_DEGREE
+stage: main
+questions_per_paper: 100
+marks_per_question: 1.0
+negative_per_wrong: 0.333
+
+sections:
+
+  general_knowledge:            # 55 marks, paper positions ~Q1-55
+    marks: 55
+    topics:
+      history:                  {marks: 5}   # Kerala / India / World
+      geography:                {marks: 5}
+      economics:                {marks: 5}
+      indian_constitution:      {marks: 5}
+      kerala_governance:        {marks: 10}  # HEAVIEST single topic in the paper
+      life_science_public_health: {marks: 6}
+      physics:                  {marks: 3}
+      chemistry:                {marks: 3}
+      arts_literature_culture_sports: {marks: 5}
+      basics_of_computer:       {marks: 3}
+      important_acts:           {marks: 5}
+
+  current_affairs:              # 15 marks -- second heaviest block
+    marks: 15
+    topics:
+      current_affairs:          {marks: 15}
+
+  aptitude:                     # 10 marks, paper positions Q71-80
+    marks: 10
+    topics:
+      simple_arithmetic:        {marks: null}   # split within block not published
+      mental_ability_reasoning: {marks: null}
+
+  general_english:              # 10 marks, paper positions Q81-90
+    marks: 10
+    topics:
+      grammar_usage:            {marks: null}
+      vocabulary:               {marks: null}
+
+  regional_language:            # 10 marks, paper positions Q91-100
+    marks: 10
+    # EXTRACTION BLOCKER: in paper 160/2023 this block uses a legacy non-Unicode
+    # Malayalam font and extracts as mojibake, not text. Unusable for automated
+    # tagging or mock generation until OCR or font mapping is added.
+    extractable: false
+    topics:
+      malayalam:                {marks: 10}

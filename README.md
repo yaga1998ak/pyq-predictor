@@ -1,139 +1,79 @@
-# PYQ Predictor — SSC CGL 2026
+# Kerala PSC — Degree Level Main, question tooling
 
-Backtested topic-distribution forecasting from past year question papers.
+Tools for working with **Kerala Public Service Commission Degree Level Main
+Examination** past papers: parsing them, tagging questions by topic, measuring
+syllabus coverage, and assembling practice papers to the commission's own
+published mark distribution.
 
-**What it predicts:** how many questions each topic is likely to carry, with
-honest uncertainty ranges.
-**What it does not predict:** specific questions. Nothing here can do that, and
-any tool claiming otherwise is selling something.
+Built for aspirants who cannot afford coaching. Everything here works from
+papers KPSC has already published.
 
 ---
 
 ## The one rule
 
-**No number in any output comes from a language model.**
+**No question and no answer in any output is written by a language model.**
 
-The LLM's only job is turning question text into a topic label. Counting,
-weighting, trending and forecasting are deterministic Python you can re-run and
-audit. Ask an LLM to "analyse frequency patterns" and it produces confident,
-plausible, fabricated numbers — and backtesting won't catch it, because the
-output *looks* like analysis.
+Every question a paper emits is a real question from a real Kerala PSC Degree
+Level Main Examination, carrying the commission's own published answer. A
+generated question can look perfect and carry a subtly wrong key, and a practice
+paper that teaches the wrong answer is worse than no practice paper at all.
 
-| Job | Tool |
+The language model's only job is turning existing question text into a topic
+label from a fixed taxonomy. Selection, counting and mark distribution are
+deterministic Python you can re-run and audit.
+
+| Job | How |
 |---|---|
-| PDF → structured questions | `parse.py` (pypdf) |
-| Question → topic label | `tag.py` (**LLM**, constrained to taxonomy) |
-| Counting, trends, forecasting | `models.py` / `backtest.py` (numpy) |
-| Interpreting results | you, plus an LLM if useful |
+| PDF → structured questions | `kerala_parse.py` |
+| Question → topic label | `kerala_tag.py` (LLM, constrained to the taxonomy) |
+| Topic → syllabus coverage | `kerala_coverage.py` |
+| Questions → practice paper | `kerala_mock.py`, `kerala_model_paper.py` |
+| Questions → question bank | `kerala_qbank.py` |
+| Questions → study notes | `kerala_notes.py`, `kerala_studybook.py`, `kerala_book.py` |
 
----
+## Two limits it refuses to hide
 
-## Pipeline
+A paper is built to KPSC's published distribution (Cat.No.26/2022): General
+Knowledge 55, Current Affairs 15, Aptitude 10, English 10, Malayalam 10. Two
+slot types cannot be filled honestly from an older corpus, and the tools report
+them as deficits rather than padding them:
 
-```bash
-# 0. one-time
-python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
+- **Current affairs** drawn from 2022–23 papers is stale for a later exam.
+  Those slots are reported short, not quietly filled with obsolete news.
+- **Malayalam** extracts as mojibake from the legacy non-Unicode font, so those
+  slots are marked for practice from the original PDFs instead of printed as
+  garbage.
 
-# 1. drop PYQ PDFs in data/raw/, named <exam>_<year>[_<shift>].pdf
-#    e.g. ssc_cgl_2023_shift2.pdf
-./.venv/bin/python src/parse.py
+A paper that says "94 of 100 slots filled, here is why" is more useful than one
+that silently invents six questions.
 
-# 2. tag topics with a local model
-./.venv/bin/python src/tag.py --model deepseek-r1:8b
+## Requirements
 
-# 3. MEASURE THE TAGGER before trusting it
-./.venv/bin/python src/eval_tagger.py --sample 200   # label gold_topic by hand
-./.venv/bin/python src/eval_tagger.py
+- Python 3.11+
+- A local [Ollama](https://ollama.com) model for tagging (qwen2.5:7b is enough —
+  topic labelling is a constrained classification task, not a reasoning one)
+- `pip install -r requirements.txt`
 
-# 4. walk-forward backtest — which model actually has signal?
-./.venv/bin/python src/backtest.py
+## Corpus
 
-# 5. forecast, using whichever model WON step 4
-./.venv/bin/python src/predict.py --year 2026 --model <winner>
-```
+**Question papers are not included in this repository.** They are KPSC's
+publications, and are downloadable from
+[keralapsc.gov.in](https://www.keralapsc.gov.in). Point the tools at your own
+copies.
 
-Validate the harness without any real data:
+## Status
 
-```bash
-./.venv/bin/python src/synth.py --drift 0.06 --shifts-per-year 12 \
-    --out data/tagged/synth.json
-./.venv/bin/python src/backtest.py --papers data/tagged/synth.json
-```
+Working, and used in practice. The tagger and taxonomy cover the Degree Level
+Main syllabus; paper assembly fills 100 of 100 slots on a current corpus.
 
----
+This is a personal project by a Kerala PSC tutor, published in case it saves
+someone else the parsing work. Issues and pull requests welcome.
 
-## What the backtest already told us
+## Licence
 
-Run on synthetic data with known ground truth, before any real PYQs:
+GNU Affero General Public License v3.0 — see [LICENSE](LICENSE).
 
-**1. Data volume dominates everything.** Going from 1 paper/year to 12 shifts/year:
-
-| | MAE | top-10 hit rate |
-|---|---|---|
-| 1 paper/year | 1.05 | 0.50 |
-| 12 shifts/year | **0.37** | **0.71** |
-
-A single 100-question paper spreads 25 questions across ~18 topics — per-topic
-counts of 1–2, where multinomial noise swamps any real trend. **Collect every
-shift you can find.** This matters more than model choice, by a wide margin.
-
-**2. The naive baseline is hard to beat.** "Average the last 3 years" won on
-drifting data. Sophisticated models lost. That is a real result, not a bug — and
-it's why `backtest.py` prints an explicit verdict telling you to ship the
-baseline when nothing beats it.
-
-**3. Recency weighting helps only under drift.** On stationary data the no-decay
-variant won; under drift the aggressive-recency variant overtook it. The harness
-detects the difference, which is the evidence that it measures something real.
-
----
-
-## Why not quantum probability models
-
-Quantum probability is genuine mathematics — used in quantum cognition research
-for order and interference effects in *human judgment*. But there's no mechanism
-connecting it to this data-generating process, which is mundane: a committee
-picks questions from a fixed syllabus under rough weighting conventions.
-
-That process is a multinomial with drifting proportions. A Dirichlet-multinomial
-models it directly and gives calibrated intervals. Quantum formalism would add
-free parameters without a mechanism — and extra parameters make backtests
-*easier* to pass while making predictions *worse*, which is the failure mode
-hardest to detect.
-
-If a quantum-probability model ever beats `mean_last_3` in `backtest.py`, that's
-evidence worth having. Until then it's complexity without signal.
-
----
-
-## Honest limits
-
-- **Tagger accuracy caps everything.** At 70% tagger accuracy, 30% of every count
-  is wrong. Run `eval_tagger.py` first. Errors cluster (mensuration ↔ geometry),
-  distorting exactly the comparisons you care about.
-- **An 8B model is weak on Indian-exam-specific content.** Hand-label 200
-  questions and measure. If accuracy is poor, collapse the taxonomy to coarser
-  topics rather than pushing on.
-- **Pattern changes break everything.** SSC revised the CGL pattern in 2022–23.
-  History from before a pattern change may be actively misleading; consider
-  cutting it.
-- **Predicted counts of 1–2 are barely distinguishable from noise.** Trust the
-  ranking of heavy topics; don't over-read the tail.
-
----
-
-## Layout
-
-```
-src/parse.py         PDF → questions          data/raw/ → data/parsed/
-src/tag.py           questions → topics       (Ollama)
-src/eval_tagger.py   tagger accuracy vs hand-labelled gold set
-src/models.py        baselines + Dirichlet-multinomial
-src/metrics.py       MAE, RMSE, top-k hit, interval coverage, skill score
-src/backtest.py      walk-forward evaluation + verdict
-src/predict.py       forward forecast with 90% intervals
-src/synth.py         synthetic papers for validating the harness
-taxonomy/ssc_cgl.yaml
-```
-
-Adapt to UPSC / IB ACIO by adding a taxonomy YAML — nothing else is exam-specific.
+You may use, modify and redistribute this, including running it as a service,
+provided you publish your source under the same licence. The intent is that
+improvements to free exam preparation stay free.
